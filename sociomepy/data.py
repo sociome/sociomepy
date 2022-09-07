@@ -213,13 +213,14 @@ class SociomeDataFrame(object):
 		if isinstance(gdf, SociomeDataFrame):
 			gdf = gdf.data 
 
-
 		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Adding a subdivision ' + str(subdivision_name))
 
 		gdf = gdf[['geometry', subdivision_key]]#keep only the relevant ones
 		gdf = gdf.rename(columns={subdivision_key: subdivision_name})
 
 		self.data = gpd.sjoin(self.data, gdf, how='left', op='within')
+		self.data = self.data.drop(columns=['index_right'])
+		
 		self.subdivisions.append(subdivision_name)
 
 		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Complete adding a subdivision ' + str(subdivision_name))

@@ -5,7 +5,10 @@ metric.py contains all of the primitives for defining sociome metrics.
 A metric is a spatial function that estimates a socio-environmental 
 metric at a particular latitude an longitude point. For example, one can 
 calculate the distance to any park in a city. This is a function over all 
-latitude and longitude pairs
+latitude and longitude pairs.
+
+* Major Update Log
+09/02/2022 - Main Architecture Designed 
 """
 import geopandas as gpd
 import pandas as pd
@@ -53,7 +56,7 @@ class SpatialFunction(object):
 		   Returns:
 		   			   scalar value of metric
 		'''
-		raise ValueError('Not Implemented')
+		return ValueError("Not Implemented")
 
 
 	def eval(self, sdf):
@@ -187,6 +190,52 @@ class SpatialSubdivisionFunction(SpatialFunction):
 		gdf_target = gdf_target[['metric', 'geometry']]
 
 		return gdf_target
+
+
+
+class SpatialIdentityFunction(SpatialFunction):
+	'''A spatial identity function simply copies over two dataframes that align on geomtry.
+	'''
+
+	def __init__(self, gdf, metric_col):
+		'''Constructs a SpatialIdentityFunction.
+
+		Parameters:
+                    gdf (SociomeDataFrame): An input dataframe
+                    metric_col (str): The metric to copy over
+        Returns:
+        			SpatialFunction object
+		'''
+		
+		self.gdf = gdf
+		self.metric_col = metric_col
+		
+
+	def query(self, x):
+		#Do not call this
+		raise ValueError("Not Implemented")
+
+
+	def eval(self, sdf):
+		'''Evaluates the function across another SociomeDataFrame
+
+		   Parameters: 
+		   			   sdf (SociomeDataFrame): An input dataframe
+
+		   Returns:
+		   			   a new dataframe consisting of the evaluation
+		'''
+
+		#RHS
+		gdf = self.gdf.data #get the dataframe
+		gdf = gdf.rename(columns={self.metric_col: 'metric'})
+
+		gdf_target = sdf.data
+		gdf_target = gdf_target.merge(gdf, how='left', on='geometry')
+		gdf_target = gdf_target[['metric', 'geometry']]
+
+		return gdf_target
+
 
 
 #interpolates a continuous function
