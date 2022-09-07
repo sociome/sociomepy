@@ -16,9 +16,11 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 
 
-class GeospatialLinearModel(object):
+class GeospatialModel(object):
 	'''A geospatial linear model defines a regression model between
-	a target variable and a set of explanatory variables.
+	a target variable and a set of explanatory variables. Any sklearn
+	model can be used here. By default, we use a ridge regression
+	model.
 	'''
 
 	def __init__(self, target, explanatory):
@@ -44,8 +46,7 @@ class GeospatialLinearModel(object):
 
 
 	def clean(self, V):
-		'''Removes all missing values from the data and standardizes
-		the variables so we can interpert the coefficients.
+		'''Removes all missing values from the data.
 
 		Parameters:
 			V (nupy array)
@@ -60,10 +61,6 @@ class GeospatialLinearModel(object):
 
 		#Place column means in the indices. Align the arrays using take
 		V[inds] = np.take(col_mean, inds[1])
-
-		#standardizes the variables
-		std = StandardScaler()
-		V = std.fit_transform(V)
 
 		return V
 
@@ -116,10 +113,7 @@ class GeospatialLinearModel(object):
 		'''
 		coefficients = list(zip(self.explanatory, model.coef_[0]))
 
-		ic_target = self.ic(Y, Ypred)
-
-		self.stats = {'ic': ic_target,\
-					 'mse': self.mse(Y, Ypred),\
+		self.stats = {'mse': self.mse(Y, Ypred),\
 					 'r2': self.r2(Y, Ypred),
 					 'coefficients': coefficients}
 
@@ -127,18 +121,8 @@ class GeospatialLinearModel(object):
 		self.effects_table = pd.DataFrame(effects_list)
 		self.effects_table = self.effects_table.sort_values(by='Coefficient', key=abs)
 
-		ic_list = [{'Variable': var, 'IC': np.abs(self.ic(X[:,i], Y))} for i, var in enumerate(self.explanatory)]
-		ic_list.append({'Variable': 'All', 'IC': ic_target})
-		self.ic_table = pd.DataFrame(ic_list)
-		self.ic_table = self.ic_table.sort_values(by='IC', key=abs)
-
-
 
 	#metrics
-
-	#information coefficient
-	def ic(self, Y, Ypred):
-		return np.corrcoef(Y.T, Ypred.T)[1,0]
 
 	#mse
 	def mse(self, Y, Ypred):
