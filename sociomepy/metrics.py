@@ -238,18 +238,31 @@ class SpatialIdentityFunction(SpatialFunction):
 
 
 
-#interpolates a continuous function
 class SpatialInterpolationFunction(SpatialFunction):
-	#a spatial function is a set of points on a map associated with a given value
+	'''A spatial interpolation function interpolates a continuous function.
+	'''
 
 	#takes a geodataframe of point geometry and a metric column
 	def __init__(self, gdf, metric_col, sigma2=8e-3, precision=1e-6):
+		'''Constructs a SpatialInterpolationFunction.
+
+		Parameters:
+                    gdf (SociomeDataFrame): An input dataframe
+                    metric_col (str): The metric to interpolate
+                    sigma2 (float): The smoothing of the interpolation kernel
+                    precision (float): The hard bandwidth of the interpolation kernel
+        Returns:
+        			SpatialFunction object
+		'''
+
 		super(SpatialInterpolationFunction, self).__init__(gdf, metric_col)
 		self.tree = BallTree(self.X)
 		self.sigma2 = sigma2
 		self.bandwidth = -np.log(precision)*sigma2
 
+
 	def query(self, x):
+		#override of the abstract class
 		ind = self.tree.query_radius(x, r=self.bandwidth)[0]
 		if len(ind) == 0:
 			return np.NaN

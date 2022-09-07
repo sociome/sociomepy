@@ -17,10 +17,11 @@ from sklearn.preprocessing import StandardScaler
 
 
 class GeospatialModel(object):
-	'''A geospatial linear model defines a regression model between
+	'''A geospatial model defines a regression model between
 	a target variable and a set of explanatory variables. Any sklearn
 	model can be used here. By default, we use a ridge regression
-	model.
+	model. These models issue predictions to every row in a 
+	SociomeDataFrame.
 	'''
 
 	def __init__(self, target, explanatory):
@@ -49,9 +50,9 @@ class GeospatialModel(object):
 		'''Removes all missing values from the data.
 
 		Parameters:
-			V (nupy array)
+			V (numpy array): The input explanatory variable or target
 		Returns
-			V cleaned and standardized
+			V (numpy array): Cleaned version of the vector
 		'''
 
 		col_mean = np.nanmean(V, axis=0)
@@ -66,10 +67,13 @@ class GeospatialModel(object):
 
 
 	def fit(self, gdf, prediction_name, residual_name):
-		'''Fits a model to the provided SociomeDataFrame
+		'''Fits a model to the provided SociomeDataFrame and returns the
+		predictions and residuals as a SociomeDataFrame.
 
 			Parameters:
 					gdf (SociomeDataFrame): A SociomeDataFrame
+					prediction_name (str): What to call the predicted values
+					residual_name (str): What to call the residual values
             Returns:
             		residual_gdf (SociomeDataFrame): A SociomeDataFrame with 
             		the prediction and residual
@@ -104,33 +108,32 @@ class GeospatialModel(object):
 		about the fit.
 
 		Parameters:
-					Y (target)
-					Ypred (target)
-					model (fit model)
-					X (the features)
+					Y (numpy array): Prediction target
+					Ypred (numpy array): Predicted target variable
+					model (sklearn model): Model fit with sklearn
+					X (numpy array): The features used in the fit
             Returns:
             		None
 		'''
-		coefficients = list(zip(self.explanatory, model.coef_[0]))
 
-		self.stats = {'mse': self.mse(Y, Ypred),\
-					 'r2': self.r2(Y, Ypred),
+		#check to see if this is a linear model
+		try:
+			coefficients = list(zip(self.explanatory, model.coef_[0]))
+		except:
+			coefficients = None
+
+
+		#store stats
+		self.stats = {'mse': mean_squared_error(Y, Ypred),\
+					 'r2': r2_score(Y, Ypred),
 					 'coefficients': coefficients}
 
+
+		#create an effects table
 		effects_list = [{'Variable': var, 'Coefficient': val} for var, val in coefficients]
 		self.effects_table = pd.DataFrame(effects_list)
 		self.effects_table = self.effects_table.sort_values(by='Coefficient', key=abs)
 
-
-	#metrics
-
-	#mse
-	def mse(self, Y, Ypred):
-		return mean_squared_error(Y, Ypred)
-
-	#r2 score
-	def r2(self, Y, Ypred):
-		return r2_score(Y, Ypred)
 
 
 
