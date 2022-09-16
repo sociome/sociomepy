@@ -9,6 +9,7 @@ assuming regularity and the nature of the downstream modeling.
 It also adds useful logging and geocoding functionality.
 
 * Major Update Log
+09/16/2022 - New Data Loader Added
 09/02/2022 - Main Architecture Designed 
 '''
 
@@ -71,7 +72,48 @@ class SociomeDataFrame(object):
 
 
 	@classmethod
-	def from_json(cls, url, accessor):
+	def from_json(cls, url, accessor, **parser_args):
+		'''Creates a SociomeDataFrame from a json url
+
+			Parameters:
+                    filename (url): A json file name or url
+                    accessor (func): A function that retrieves a lat and long
+                    parser_args (dict): kwargs representing parser arguments
+                    
+            Returns:
+                    sociome (SociomeDataFrame): A SociomeDataFrame with the data
+		'''
+		timer = datetime.datetime.now()
+		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Loading Sociome Object From JSON File = ' + url)
+
+		sociome = cls()
+		df = pd.read_json(url, **parser_args)
+		return SociomeDataFrame._from_df(df, accessor)
+
+
+	@classmethod
+	def from_csv(cls, url, accessor, **parser_args):
+		'''Creates a SociomeDataFrame from a csv url
+
+			Parameters:
+                    filename (url): A csv file name or url
+                    accessor (func): A function that retrieves a lat and long
+                    parser_args (dict): kwargs representing parser arguments
+                    
+            Returns:
+                    sociome (SociomeDataFrame): A SociomeDataFrame with the data
+		'''
+		timer = datetime.datetime.now()
+		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Loading Sociome Object From CSV File = ' + url)
+
+		sociome = cls()
+		df = pd.read_csv(url, **parser_args)
+		return SociomeDataFrame._from_df(df, accessor)
+
+
+
+	@classmethod
+	def _from_df(cls, df, accessor):
 		'''Creates a SociomeDataFrame from a json url
 
 			Parameters:
@@ -82,10 +124,8 @@ class SociomeDataFrame(object):
                     sociome (SociomeDataFrame): A SociomeDataFrame with the data
 		'''
 		timer = datetime.datetime.now()
-		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Loading Sociome Object From JSON File = ' + url)
 
 		sociome = cls()
-		df = pd.read_json(url)
 		sociome.data = gpd.GeoDataFrame(df, \
 									    geometry=gpd.points_from_xy(*accessor(df)))
 
@@ -95,7 +135,7 @@ class SociomeDataFrame(object):
 		sociome.data[SociomeDataFrame.LOCATIONS_KEY] = 1
 
 		elapsed = (datetime.datetime.now() - timer).total_seconds()
-		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + ' from_json took ' + str(elapsed) + ' s')
+		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + ' from_df took ' + str(elapsed) + ' s')
 
 		return sociome
 
