@@ -4,6 +4,8 @@ model.py contains a number of key functions that help us understand
 different types of spatial correlations.
 
 * Major Update Log
+09/14/2022 - Panel API added
+
 09/06/2022 - Main Architecture Designed 
 """
 import numpy as np
@@ -133,7 +135,6 @@ class GeospatialModel(object):
 		effects_list = [{'Variable': var, 'Coefficient': val} for var, val in coefficients]
 		self.effects_table = pd.DataFrame(effects_list)
 		self.effects_table = self.effects_table.sort_values(by='Coefficient', key=abs)
-
 
 
 

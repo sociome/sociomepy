@@ -200,6 +200,7 @@ class SociomeDataFrame(object):
 		'''
 		return self.data[['geometry']]
 
+
 	def merge_on_geometry(self, gdf, columns):
 		'''Adds data from a GeoDataFrame with the same geometry as the SociomeDataFrame.
 		Note: the augmenting data must be in the same order as the original data.
@@ -217,7 +218,6 @@ class SociomeDataFrame(object):
 		return self
 
 
-
 	'''Syntax to make this play nice with geopandas
 	'''
 
@@ -229,8 +229,6 @@ class SociomeDataFrame(object):
   
 	def __setitem__(self, key, newvalue):
 		raise ValueError('Not implemented: semantics unclear')
-
-
 
 
 
