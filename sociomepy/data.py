@@ -132,6 +132,7 @@ class SociomeDataFrame(object):
 		#only keep non-empty geometries
 		sociome.data = sociome.data[~(sociome.data['geometry'].is_empty | sociome.data['geometry'].isna())]
 
+		sociome.data.set_crs(epsg=4269, inplace=True)
 		sociome.data[SociomeDataFrame.LOCATIONS_KEY] = 1
 
 		elapsed = (datetime.datetime.now() - timer).total_seconds()
