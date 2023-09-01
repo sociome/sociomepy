@@ -14,7 +14,9 @@ It also adds useful logging and geocoding functionality.
 '''
 
 #we import just some basic packages
+import urllib.request
 import logging
+import os
 import datetime
 import pandas as pd
 import geopandas as gpd
@@ -59,6 +61,45 @@ class SociomeDataFrame(object):
 		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Loading Sociome Object From = ' + filename)
 
 		sociome = cls()
+
+		if nrows == -1:
+			sociome.data = gpd.read_file(filename)
+		else:
+			sociome.data = gpd.read_file(filename, rows=nrows)
+
+		elapsed = (datetime.datetime.now() - timer).total_seconds()
+		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + ' from_save_file took' + str(elapsed) + ' s')
+
+		return sociome
+
+
+	@classmethod
+	def from_zip_file(cls, filename, nrows=-1):
+		'''Creates a SociomeDataFrame from a previous saved sociome zip file
+
+			Parameters:
+                    filename (str): A file name (or a file pointer)
+                    nrows (int): number of rows to read, -1 means read the whole file
+                    
+            Returns:
+                    sociome (SociomeDataFrame): A SociomeDataFrame with the data
+		'''
+
+		timer = datetime.datetime.now()
+
+		logging.info(SociomeDataFrame.CLASS_LOG_PREFIX  + 'Loading Sociome Object From = ' + filename)
+
+		sociome = cls()
+
+		local_name = os.path.basename(filename)
+		local_name_no_ext = local_name.replace('.zip', '')
+
+		#if remote download
+		if 'http' in filename:
+			urllib.request.urlretrieve(filename, '/tmp/' + local_name)
+			filename = 'zip://' + '/tmp/' + local_name + '!' + local_name_no_ext
+		else:
+			filename = 'zip://' + filename + '!' + local_name_no_ext
 
 		if nrows == -1:
 			sociome.data = gpd.read_file(filename)
